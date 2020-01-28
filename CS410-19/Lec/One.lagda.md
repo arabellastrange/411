@@ -246,17 +246,17 @@ and the lower bound for the right subtree.
 Observe that in a tree like the following...
 
 ```
-                      5
-          ,-----------^-----------,
-          2           :           8
-        ,-^-------,   :   ,-------^---,
-        o :       4   :   6       :   9
-        : :   ,---^-, : ,-^---,   : ,-^-,
-        : :   3   : o : o :   7   : o : o
-        : : ,-^-, : : : : : ,-^-, : : : :
-        : : o : o : : : : : o : o : : : :
-        : : : : : : : : : : : : : : : : :
-   -inf o 2 o 3 o 4 o 5 o 6 o 7 o 8 o 9 o +inf
+--                      5
+--          ,-----------^-----------,
+--          2           :           8
+--        ,-^-------,   :   ,-------^---,
+--        o :       4   :   6       :   9
+--        : :   ,---^-, : ,-^---,   : ,-^-,
+--        : :   3   : o : o :   7   : o : o
+--        : : ,-^-, : : : : : ,-^-, : : : :
+--        : : o : o : : : : : o : o : : : :
+--        : : : : : : : : : : : : : : : : :
+--   -inf o 2 o 3 o 4 o 5 o 6 o 7 o 8 o 9 o +inf
 ```
 
 ...the leaves and nodes alternate as we make an inorder traversal.

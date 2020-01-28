@@ -59,7 +59,7 @@ module _ where
   infixr 60 _+L_
 
   Monoid-List : forall X -> Monoid (List X)
-  neutral               (Monoid-List X) = {!!}
+  neutral               (Monoid-List X) = Monoid (List X) {!!}
   compose               (Monoid-List X) xs ys = xs +L ys
   compose-neutral-thing (Monoid-List X) xs = {!!}
   compose-thing-neutral (Monoid-List X) xs = {!!}
