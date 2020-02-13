@@ -131,19 +131,40 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
     (Y => Z) >< \ g ->
     compose C f g ~ h
 
+  triEq : forall {X}{f g : From X}{p q : Triangle X f g} ->
+          fst p ~ fst q ->
+          p ~ q
+  triEq {p = f , r~} {q = .f , r~} r~ = r~
+
   module _ (X : Obj) where
 
     _-FROM_ : SmolCat (Triangle X)
-    identity _-FROM_ {Y , f} = identity C {Y} , compose-arrow-identity C f
-    compose _-FROM_ {R , f} {S , g} {T , h} (fg , q0) (gh , q1) = compose C fg gh , {!!}
-    compose-identity-arrow _-FROM_ = {!!}
-    compose-arrow-identity _-FROM_ = {!!}
-    compose-compose _-FROM_ = {!!}
+    identity _-FROM_ {Y , f} =
+      identity C {Y} , compose-arrow-identity C f
+    compose _-FROM_ {R , f} {S , g} {T , h} (fg , q0) (gh , q1) =
+      compose C fg gh , 
+        compose C f (compose C fg gh)
+          < compose-compose C _ _ _ ]~
+        compose C (compose C f fg) gh
+          ~[ (\ a -> compose C a gh) $~ q0 >
+        compose C g gh
+          ~[ q1 >
+        h
+          [QED]
+    compose-identity-arrow _-FROM_ f = triEq (compose-identity-arrow C _)
+    compose-arrow-identity _-FROM_ f = triEq (compose-arrow-identity C _)
+    compose-compose _-FROM_ f g h = triEq (compose-compose C _ _ _)
 ```
 
 What is `C -TO Y`?
 
-```nagda
+```agda
+module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_)(Y : Obj) where
+  _-TO_ : SmolCat (Triangle (OP C) Y)
+  _-TO_ = OP C -FROM Y
+```
+
+```agda
 module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
   open SmolCat C
 
@@ -154,14 +175,23 @@ module _ {Obj : Set}{_=>_ : Obj -> Obj -> Set}(C : SmolCat _=>_) where
          -> S => T -> Map S -> Map T
       map-identity : forall {T}(t : Map T)
                   -> map (identity {T}) t ~ t
+         -- why not? forall {T} -> map (identity {T}) ~ id -- \ x -> x
       map-compose  : forall {R S T}(f : R => S)(g : S => T)(r : Map R)
                   -> (map f - map g) r ~ map (compose f g) r
 ```
 
-```nagda
+```agda
 module _ (X : Set) where
   open _->Set
 
   TUPLE : OP (PREORDER leNat) ->Set
-  TUPLE = {!!}
+  Map TUPLE ze = One
+  Map TUPLE (su n) = X * Map TUPLE n
+  map TUPLE {m} {ze} mn xs = <>
+  map TUPLE {su m} {su n} mn (x , xs) = x , map TUPLE {m} {n} mn xs
+  map-identity TUPLE {ze} xs = r~
+  map-identity TUPLE {su n} (x , xs) = (x ,_) $~ map-identity TUPLE {n} xs
+  map-compose TUPLE {m} {n} {ze} mn np xs = r~
+  map-compose TUPLE {su m} {su n} {su p} mn np (x , xs) =
+    (x ,_) $~ map-compose TUPLE {m} {n} {p} mn np xs
 ```

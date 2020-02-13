@@ -290,7 +290,7 @@ module _ {X : Set} where
 
 -- Give composition for thinnings. Minimize the number of cases.
 
-  _-<-_ : forall {X}{xs ys zs : List X} -> xs <: ys -> ys <: zs -> xs <: zs
+  _-<-_ : forall {xs ys zs : List X} -> xs <: ys -> ys <: zs -> xs <: zs
   th -<- ph = {!!}
 
   infixl 40 _-<-_
@@ -394,10 +394,10 @@ module _ {X : Set} where
   data Splitting : {xs ys zs : List X}
                    (th : xs <: zs)(ph : ys <: zs) 
                 -> Set where
-    _-^,_ : forall {w xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
+    _-^,_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
                Splitting th ph ->
                Splitting (w ^- th) (w ,- ph)
-    _-,^_ : forall {w xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
+    _-,^_ : forall w {xs ys zs}{th : xs <: zs}{ph : ys <: zs} ->
                Splitting th ph ->
                Splitting (w ,- th) (w ^- ph)
     [] : Splitting [] []
