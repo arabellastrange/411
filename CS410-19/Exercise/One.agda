@@ -55,15 +55,20 @@ module _ where
   open Monoid
 
   _+L_ : forall {X} -> List X -> List X -> List X
-  xs +L ys = {!!}
+  _+L_ {X} [] ys = ys
+  _+L_ {X} (x ,- xs) ys = x ,- (xs +L ys)
   infixr 60 _+L_
 
   Monoid-List : forall X -> Monoid (List X)
-  neutral               (Monoid-List X) = Monoid (List X) {!!}
+  neutral               (Monoid-List X) =  []
   compose               (Monoid-List X) xs ys = xs +L ys
-  compose-neutral-thing (Monoid-List X) xs = {!!}
-  compose-thing-neutral (Monoid-List X) xs = {!!}
-  compose-compose       (Monoid-List X) xs ys zs = {!!}
+  compose-neutral-thing (Monoid-List X) xs = r~
+  compose-thing-neutral (Monoid-List X) [] = r~
+  {- use $~ to apply func to both sides of an equation -}
+  compose-thing-neutral (Monoid-List X) (x ,- xs) = x ,-_ $~ {!?!}
+  compose-compose (Monoid-List X) [] ys zs = r~
+  {- compose-compose x (compose-compose +L xs ys) zs -}
+  compose-compose (Monoid-List X) (x ,- xs) ys zs = x ,-_ $~ ({!?!})
 
 
 ------------------------------------------------------------------------------
@@ -79,9 +84,19 @@ module _ {X : Set}(M : Monoid X) where
   -- in sequence, left to right
 
   reduce : Monoid-List X -Monoid> M
-  transform reduce xs = {!!}
-  transform-neutral reduce = {!!}
-  transform-compose reduce xs ys = {!!}
+  transform reduce [] = neutral
+  {- where for example transform reduce is the sum function, i would add x to the sum of the list recursively -}
+  transform reduce (x ,- xs) = compose x (transform reduce xs)
+  transform-neutral reduce = r~
+  {- ~o indicates symmerty, here the thing we have written is the reservse of the proof we want and so we indicate that 
+  those are the same thing -}
+  transform-compose reduce [] ys = compose-neutral-thing (transform reduce ys) ~o
+  {- ~[ and > are signpost functions - see definition -} 
+  transform-compose reduce (x ,- xs) ys =
+    (compose x (transform reduce (xs +L ys))) ~[(compose x) $~
+    (transform-compose reduce xs ys) > compose x (compose (transform reduce xs) (transform reduce ys)) <
+    {!compose $~ ?!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
+    [QED]
 
 
 ------------------------------------------------------------------------------
@@ -90,20 +105,24 @@ module _ {X : Set}(M : Monoid X) where
 ------------------------------------------------------------------------------
 
 list : forall {X Y} -> (X -> Y) -> List X -> List Y
-list f xs = {!!}
+list f [] = []
+list f (x ,- xs) = (f x) ,- (list f xs)
 
 module _ {X}(f : X -> X)(f-identity : forall x -> f x ~ x)
   where
 
   list-identity : forall xs -> list f xs ~ xs
-  list-identity xs = {!!}
+  list-identity [] = r~
+  {- ~$~ applies proof that two functions are equal to the proof that two args are equal -}
+  list-identity (x ,- xs) =  _,-_ $~ f-identity x ~$~ list-identity xs
 
 module _ {X Y Z}(f : X -> Y)(g : Y -> Z)(h : X -> Z)
   (f-g-is-h : forall x -> g (f x) ~ h x)
   where
 
   list-composition : forall xs -> list g (list f xs) ~ list h xs
-  list-composition xs = {!!}
+  list-composition [] = r~
+  list-composition (x ,- xs) = _,-_ $~ f-g-is-h x ~$~ list-composition xs
 
 module _ {X Y}(f : X -> Y)
   where
@@ -112,8 +131,9 @@ module _ {X Y}(f : X -> Y)
   
   list-monoid-homomorphism : Monoid-List X -Monoid> Monoid-List Y
   transform list-monoid-homomorphism = list f
-  transform-neutral list-monoid-homomorphism = {!!}
-  transform-compose list-monoid-homomorphism = {!!}
+  transform-neutral list-monoid-homomorphism = r~
+  transform-compose list-monoid-homomorphism [] ys = r~
+  transform-compose list-monoid-homomorphism (x ,- xs) ys =  _,-_ $~ r~ ~$~ transform-compose list-monoid-homomorphism xs ys 
 
 
 ------------------------------------------------------------------------------
@@ -136,7 +156,8 @@ module _ {X Y}(MY : Monoid Y)(h : Monoid-List X -Monoid> MY)
 
   transform-reduce : forall xs ->
     transform h xs ~ transform (reduce MY) (list single xs)
-  transform-reduce xs = {!!}
+  transform-reduce [] = {!!}
+  transform-reduce (x ,- xs) = {!!}
 
 
 ------------------------------------------------------------------------------
