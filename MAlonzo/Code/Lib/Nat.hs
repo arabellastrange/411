@@ -8,6 +8,7 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
                     mul64, quot64, rem64, lt64, eq64, word64FromNat, word64ToNat)
 import qualified MAlonzo.RTE
 import qualified Data.Text
+import qualified MAlonzo.Code.Cat.Smol
 import qualified MAlonzo.Code.Lib.Datoid
 import qualified MAlonzo.Code.Lib.Equality
 import qualified MAlonzo.Code.Lib.Sigma
@@ -69,6 +70,12 @@ d50 v0 v1
              0 -> coe v0
              _ -> let v3 = subInt (coe v1) (coe (1 :: Integer)) in
                   coe (addInt (coe (2 :: Integer)) (coe (d50 (coe v2) (coe v3))))
+name62 = "Lib.Nat.MONOID+N.monoid+N"
+d62 :: MAlonzo.Code.Cat.Smol.T8
+d62
+  = coe
+      (\ v0 v1 v2 v3 v4 -> MAlonzo.Code.Cat.Smol.C39 v0 v1)
+      (\ v0 -> 0 :: Integer) (\ v0 v1 v2 -> d34) erased erased erased
 name67 = "Lib.Nat..absurdlambda"
 d67 ::
   Integer ->

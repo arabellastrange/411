@@ -179,7 +179,8 @@ data All {X}(P : X -> Set) : List X -> Set where
 
 pureAll : forall {X}{P : X -> Set} ->
   [ P ] -> [ All P ]
-pureAll p {xs} = {!!}
+pureAll p {[]} = []
+pureAll p {x ,- xs} = p ,- pureAll p
 
 -- Show that
 -- if S x implies T x for all x in a list
@@ -188,13 +189,15 @@ pureAll p {xs} = {!!}
 
 _<*All*>_ : forall {X}{S T : X -> Set} ->
   [ All (S -:> T) -:> All S -:> All T ]
-fs <*All*> ss = {!!}
+fs <*All*> [] = []
+(f ,- fs) <*All*> (s ,- ss) = f s ,- (fs <*All*> ss)
 
 -- Use the above two gadgets to define map for All
 
 all : forall {X}{S T : X -> Set} ->
   [ S -:> T ] -> [ All S -:> All T ]
-all f ss = {!!}
+all f [] = []
+all f (s ,- ss) = f s ,- all f ss
 
 -- Show that all respects identity and composition.
 
@@ -203,7 +206,8 @@ module _ {X}{P : X -> Set}(f : [ P -:> P ])
   where
 
   all-identity : forall {xs}(ps : All P xs) -> all f ps ~ ps
-  all-identity ps = {!!}
+  all-identity [] = r~
+  all-identity (p ,- ps) = _,-_ $~ f-identity p ~$~ all-identity ps
 
 module _ {X}{S T U : X -> Set}
   (f : [ S -:> T ])(g : [ T -:> U ])(h : [ S -:> U ])
@@ -211,7 +215,8 @@ module _ {X}{S T U : X -> Set}
   where
 
   all-compose : forall {xs}(ss : All S xs) -> all g (all f ss) ~ all h ss
-  all-compose ss = {!!}
+  all-compose [] = r~
+  all-compose (s ,- ss) = _,-_ $~ f-g-is-h s ~$~ all-compose ss
   
 
 ------------------------------------------------------------------------------
@@ -259,24 +264,38 @@ num (su n) = <> ,- num n
 -- thinnings with the following types.
 
 pick0from4 : List (num 0 <: num 4)
-pick0from4 = {!!}
+pick0from4 = (<> ^- <> ^- <> ^- <> ^- []) ,- []
 
 pick1from4 : List (num 1 <: num 4)
-pick1from4 = {!!}
+pick1from4 = (<> ^- <> ^- <> ^- <> ,- []) ,-
+             (<> ^- <> ^- <> ,- <> ^- []) ,-
+             (<> ^- <> ,- <> ^- <> ^- []) ,-
+             (<> ,- <> ^- <> ^- <> ^- []) ,-
+             []
 
 pick2from4 : List (num 2 <: num 4)
-pick2from4 = {!!}
+pick2from4 = (<> ^- <> ^- <> ,- <> ,- []) ,-
+             (<> ^- <> ,- <> ^- <> ,- []) ,-
+             (<> ^- <> ,- <> ,- <> ^- []) ,-
+             (<> ,- <> ^- <> ^- <> ,- []) ,-
+             (<> ,- <> ^- <> ,- <> ^- []) ,-
+             (<> ,- <> ,- <> ^- <> ^- []) ,-
+             []
 
 pick3from4 : List (num 3 <: num 4)
-pick3from4 = {!!}
+pick3from4 = (<> ^- <> ,- <> ,- <> ,- []) ,-
+             (<> ,- <> ^- <> ,- <> ,- []) ,-
+             (<> ,- <> ,- <> ^- <> ,- []) ,-
+             (<> ,- <> ,- <> ,- <> ^- []) ,-
+             []
           
 pick4from4 : List (num 4 <: num 4)
-pick4from4 = {!!}
+pick4from4 = (<> ,- <> ,- <> ,- <> ,- []) ,- []
 
 -- But with more interesting elements, we have fewer options, sometimes.
 
 thinOdds : List (1 ,- 3 ,- 5 ,- [] <: 0 ,- 1 ,- 2 ,- 3 ,- 4 ,- 5 ,- 6 ,- [])
-thinOdds = {!!}
+thinOdds = (0 ^- 1 ,- 2 ^- 3 ,- 4 ^- 5 ,- 6 ^- []) ,- []
 
 
 ------------------------------------------------------------------------------
@@ -287,12 +306,21 @@ module _ {X : Set} where
 -- Construct the identity thinning from any list to itself.
 
   oi : forall {xs : List X} -> xs <: xs
-  oi {xs} = {!!}
+  oi {[]} = []
+  {- <: operator selects subset of right arg, filter-like -}
+  oi {x ,- xs} = x ,- oi
 
 -- Give composition for thinnings. Minimize the number of cases.
 
   _-<-_ : forall {X}{xs ys zs : List X} -> xs <: ys -> ys <: zs -> xs <: zs
-  th -<- ph = {!!}
+  {- drop straight away -} 
+  th -<- x ^- ph = x ^- (th -<- ph)
+  {- the case for keep for filter one drop in filter 2 -}
+  .x ^- th -<- x ,- ph = th -<- x ^- ph
+  {- keep in both filters -}
+  .x ,- th -<- x ,- ph = x ,- (th -<- ph)
+  th -<- [] = th
+  
 
   infixl 40 _-<-_
 
@@ -300,15 +328,25 @@ module _ {X : Set} where
 -- depend on your definition of _-<-_).
 
   oi-<- : forall {xs ys : List X}(ph : xs <: ys) -> oi -<- ph ~ ph
-  oi-<- ph = {!!}
+  oi-<- (x ^- ph) = x ^-_ $~ oi-<- ph
+  oi-<- (x ,- ph) = x ,-_ $~ oi-<- ph
+  oi-<- [] = r~
 
   _-<-oi : forall {xs ys : List X}(th : xs <: ys) -> th -<- oi ~ th
-  th -<-oi = {!!}
+  (x ^- th) -<-oi = x ^-_ $~ (th -<-oi)
+  (x ,- th) -<-oi = x ,-_ $~ (th -<-oi)
+  [] -<-oi = r~
 
   assoc-<- : forall {ws xs ys zs : List X}
                (th0 : ws <: xs)(th1 : xs <: ys)(th2 : ys <: zs) ->
                (th0 -<- th1) -<- th2 ~ th0 -<- (th1 -<- th2)
-  assoc-<- th0 th1 th2 = {!!}
+  assoc-<- th0 (x ^- th1) (x₁ ^- th2) = x₁ ^-_ $~ assoc-<- th0 (x ^- th1) th2
+  assoc-<- th0 (x ^- th1) (.x ,- th2) = x ^-_ $~ assoc-<- th0 th1 th2
+  assoc-<- th0 (x ,- th1) (x₁ ^- th2) =  x₁ ^-_ $~ assoc-<- th0 (x ,- th1 ) th2
+  assoc-<- (.x ^- th0) (x ,- th1) (.x ,- th2) = x ^-_ $~ assoc-<- th0 th1 th2 -- probably drop this duplicate
+  assoc-<- (.x ,- th0) (x ,- th1) (.x ,- th2) = x ,-_ $~ assoc-<- th0 th1 th2
+  assoc-<- th0 [] (x ^- th2) = x ^-_ $~ (assoc-<- th0 [] th2)
+  assoc-<- th0 [] [] = r~
 
 
 ------------------------------------------------------------------------------
@@ -322,14 +360,17 @@ module _ {X : Set} where
 
   select : forall {xs ys : List X}{P : X -> Set} ->
            xs <: ys -> All P ys -> All P xs
-  select th pys = {!!}
+  select (x ^- th) (x₁ ,- pys) = {!select th pys!}
+  select (x ,- th) pys = {!select th (?) !}
+  select [] pys = pys
 
 -- Now prove the following laws relating to selecting by the
 -- identity and composition.
 
   select-oi : forall {xs : List X}{P : X -> Set} -> (pxs : All P xs) ->
               select oi pxs ~ pxs
-  select-oi pxs = {!!}
+  select-oi [] = r~
+  select-oi (x ,- pxs) = {!!}
 
   select-<- : forall {xs ys zs : List X}{P : X -> Set} ->
               (th : xs <: ys)(ph : ys <: zs) -> (pzs : All P zs) ->
