@@ -434,9 +434,9 @@ module _ {X : Set} where
 -- Deduce that oi is unique.
 
   oi~ : forall {xs : List X}(th ph : xs <: xs) -> th ~ ph
-  oi~ (x ^- th) = ?
-  oi~ (x ,- th) = ?
-  oi~ [] = ?
+  oi~ (x ^- th) = {!!}
+  oi~ (x ,- th) = {!!}
+  oi~ [] = {!!}
 
 
 ------------------------------------------------------------------------------
