@@ -8,7 +8,9 @@ In the spirit of naming types after the number of values in them, `One` is the
 type with one value.
 
 ```agda
-record One : Set where constructor <>
+record One {l} : Set l where constructor <>
+
+{-# COMPILE GHC One = data () (()) #-}
 ```
 
 It is declared as a `record`, which means it is defined by its
