@@ -66,10 +66,10 @@ module _ where
   compose-neutral-thing (Monoid-List X) xs = r~
   compose-thing-neutral (Monoid-List X) [] = r~
   {- use $~ to apply func to both sides of an equation -}
-  compose-thing-neutral (Monoid-List X) (x ,- xs) = x ,-_ $~ {!?!}
+  compose-thing-neutral (Monoid-List X) (x ,- xs) = x ,-_ $~ {!compose-thing-neutral!}
   compose-compose (Monoid-List X) [] ys zs = r~
   {- compose-compose x (compose-compose +L xs ys) zs -}
-  compose-compose (Monoid-List X) (x ,- xs) ys zs = x ,-_ $~ ({!?!})
+  compose-compose (Monoid-List X) (x ,- xs) ys zs = x ,-_ $~ ({!!})
 
 
 ------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ module _ {X : Set}(M : Monoid X) where
   transform-compose reduce (x ,- xs) ys =
     (compose x (transform reduce (xs +L ys))) ~[(compose x) $~
     (transform-compose reduce xs ys) > compose x (compose (transform reduce xs) (transform reduce ys)) <
-    {!compose $~ ?!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
+    {! ?!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
     [QED]
 
 
@@ -159,7 +159,7 @@ module _ {X Y}(MY : Monoid Y)(h : Monoid-List X -Monoid> MY)
     transform h xs ~ transform (reduce MY) (list single xs)
   transform-reduce [] = transform-neutral h
   {- cons with empty list to make singletion list -}
-  transform-reduce (x ,- xs) = transform h (x ,- xs) ~[ transform-compose h (x ,- []) xs  > {!compose $~ ?!}
+  transform-reduce (x ,- xs) = transform h (x ,- xs) ~[ transform-compose h (x ,- []) xs  > (compose $~ {!transform-reduce ?!} ~$~ transform-reduce xs)
 
 
 ------------------------------------------------------------------------------
@@ -425,18 +425,21 @@ module _ {X : Set} where
   antisym : forall {xs ys : List X}
              (th : xs <: ys)(ph : ys <: xs) ->
              xs ~ ys >< \ { r~ -> th ~ oi * ph ~ oi }
-  antisym (x ^- th) (x₁ ^- ph) = {!antisym ? ?!}
-  antisym (x ^- th) (.x ,- ph) = {!!}
-  antisym (x ,- th) (.x ^- ph) = {!!}
-  antisym (x ,- th) (.x ,- ph) = {!antisym ( x ,- th) ?!}
-  antisym [] [] = {!?!}
+  antisym (x ^- th) (x₁ ^- ph) = {!antisym th ?!}
+  antisym (x ^- th) (.x ,- ph) = {!antisym ? ?!}
+  antisym (x ,- th) (.x ^- ph) = {!antisym ? ?!}
+  -- only these two cases are actually possible 
+  antisym (x ,- th) (.x ,- ph) with antisym th ph
+  antisym (x ,- th) (.x ,- ph) | r~ , fst₁ , snd₁ = r~ , ((x ,-_ $~ (fst₁)) , ( x ,-_ $~ snd₁))
+  -- * is the non dependant of >< eq. haskell pairs
+  antisym [] [] = r~ , r~ , r~
 
 -- Deduce that oi is unique.
 
   oi~ : forall {xs : List X}(th ph : xs <: xs) -> th ~ ph
-  oi~ (x ^- th) = ?
-  oi~ (x ,- th) = ?
-  oi~ [] = ?
+  oi~ (x ^- th) = {!?!}
+  oi~ (x ,- th) = {!?!}
+  oi~ [] = {!!}
 
 
 ------------------------------------------------------------------------------
@@ -469,7 +472,9 @@ module _ {X : Set} where
     List X   >< \ ys ->    -- ...what wasn't from xs...
     ys <: zs >< \ ph ->  -- ...but was in zs...
     Splitting th ph        -- ...hence forms a splitting.
-  thinSplit th = {!!}
+  thinSplit (x ^- th) = _ , (_ , {! thinSplit ?!})
+  thinSplit (x ,- th) = _ , (_ , {!?!})
+  thinSplit [] = _ , (_ , [])
 
 -- Given a splitting, show that we can "riffle" together a bunch
 -- of "All P"-s for each selection to get an "All P" for the whole.
