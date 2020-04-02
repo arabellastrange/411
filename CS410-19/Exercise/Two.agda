@@ -68,13 +68,15 @@ _-Frag_ : {I O : Set}(C : I >8 O) -> (I -> Set) -> (O -> Set)
 -- is the same as the output shape.
 
 Id>8 : forall {I} -> I >8 I
-Id>8 i = {!!}
+Cut (Id>8 i) = {!!}
+pieces (Id>8 i) = {!i!}
 
 
 -- Define the composition of cuttings.
 
 _->8-_ : forall {I J K} -> I >8 J -> J >8 K -> I >8 K
-(IJ ->8- JK) k = {!!}
+Cut ((IJ ->8- JK) k) = {!? -> ? -> ?!}
+pieces ((IJ ->8- JK) k) = {!!} 
 
 -- Here, a composite cut should explain how to cut a K into Js, then each J
 -- into Is. The pieces you end up with should be all the Is from all the Js.
@@ -85,7 +87,7 @@ _->8-_ : forall {I J K} -> I >8 J -> J >8 K -> I >8 K
 -- isomorphism.
 
 toId>8 : forall {I}{P : I -> Set} -> [ P -:> Id>8 -Frag P ]
-toId>8 p = {!!}
+toId>8 p = {!!} , {!!}
 
 fromId>8 : forall {I}{P : I -> Set} -> [ Id>8 -Frag P -:> P ]
 fromId>8 p = {!!}
@@ -182,8 +184,8 @@ module _ {I : Set}{C : I >8 I} where
     where
     fold-ext    : forall {i}(t : (C -Tree L) i) -> fold f0 g0 t ~ fold f1 g1 t
     allFold-ext : forall {is}(ts : All (C -Tree L) is) -> allFold f0 g0 ts ~ allFold f1 g1 ts
-    fold-ext t = ?
-    allFold-ext ts = ?
+    fold-ext t = {!!}
+    allFold-ext ts = {!!}
 
 
 ------------------------------------------------------------------------------
