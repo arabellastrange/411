@@ -66,19 +66,15 @@ _-Frag_ : {I O : Set}(C : I >8 O) -> (I -> Set) -> (O -> Set)
 
 -- Define the identity cutting, where there is one piece, and the inside shape
 -- is the same as the output shape.
-
+-- cut nothing return everything
 Id>8 : forall {I} -> I >8 I
-Cut (Id>8 i) = {!!}
-pieces (Id>8 i) = {!i!}
+-- simplest set?
+Cut (Id>8 i) = One
+pieces (Id>8 i) =  λ x → i ,- []
 
 
 -- Define the composition of cuttings.
-
-_->8-_ : forall {I J K} -> I >8 J -> J >8 K -> I >8 K
-Cut ((IJ ->8- JK) k) = {!? -> ? -> ?!}
-pieces ((IJ ->8- JK) k) = {!!} 
-
--- Here, a composite cut should explain how to cut a K into Js, then each J
+-- Here, a composite cut should explain how to cut a K into Js,then each J
 -- into Is. The pieces you end up with should be all the Is from all the Js.
 -- Hints: (i) IJ - Cut : J -> Set; (ii) you may need a helper function to
 -- assemble the pieces.
@@ -86,11 +82,22 @@ pieces ((IJ ->8- JK) k) = {!!}
 -- Check that -Frag makes them behave like identity and composition, up to
 -- isomorphism.
 
+-- assembler (turns list of lists into list)  
+
+_->8-_ : forall {I J K} -> I >8 J -> J >8 K -> I >8 K
+Cut ((IJ ->8- JK) k) = (JK -Frag λ x → Cut (IJ x)) k
+pieces ((IJ ->8- JK) k) (fst₁ , snd₁) = {!!}
+
+---------------
+
 toId>8 : forall {I}{P : I -> Set} -> [ P -:> Id>8 -Frag P ]
-toId>8 p = {!!} , {!!}
+fst (toId>8 p) = <>
+snd (toId>8 p) = p ,- []
 
 fromId>8 : forall {I}{P : I -> Set} -> [ Id>8 -Frag P -:> P ]
-fromId>8 p = {!!}
+fromId>8 {I} {P} {i} (fst₁ , snd₁) = {!!}
+
+-- prove composition of cuttings
 
 to->8- : forall {I J K}(IJ : I >8 J)(JK : J >8 K){P : I -> Set} ->
   [ JK -Frag (IJ -Frag P) -:> (IJ ->8- JK) -Frag P ]
@@ -144,8 +151,15 @@ module _ {I : Set}{C : I >8 I} where
       -> [ L -:> V ]
       -> [ C -Frag V -:> V ]   -- an "algebra"
       -> [ All (C -Tree L) -:> All V ]
-  fold leaf' algebra t = {!!}
-  allFold leaf' algebra ts = {!!}
+  fold leaf' algebra (leaf t) = leaf' t
+  -- 4: snd
+  fold leaf' algebra [8< fst , snd ] = algebra (fst , {!allFold snd!})
+  allFold leaf' algebra [] = []
+  -- 5: ts
+  allFold leaf' algebra (leaf t ,- ts) = leaf' t ,- {!allFold ts!}
+  -- 6: snd, 7: ts 
+  allFold leaf' algebra ([8< fst , snd ] ,- ts) = algebra (fst , {!allFold snd!}) ,- {! ts!}      
+ 
 
 -- Prove that if you plug the constructors for trees into fold, you get
 -- the identity.
@@ -154,8 +168,10 @@ module _ {I : Set}{C : I >8 I} where
     fold leaf [8<_] t ~ t
   allFold-rebuild : forall {L}{is}(ts : All (C -Tree L) is) ->
     allFold leaf [8<_] ts ~ ts
-  fold-rebuild t = {!!}
-  allFold-rebuild ts = {!!}
+  fold-rebuild (leaf x) = r~
+  fold-rebuild [8< x ] = {!!}
+  allFold-rebuild [] = r~
+  allFold-rebuild (x ,- ts) = {!!}
 
 -- Prove the following fusion law, which holds when the first fold acts
 -- only at leaves.
@@ -166,14 +182,12 @@ module _ {I : Set}{C : I >8 I} where
     (g : [ C -Frag V -:> V ])
     where
 
-    fold-fusion : forall 
-      {i}(t : (C -Tree L) i) ->
-      fold f g (fold l [8<_] t) ~ fold (l - fold f g) g t
-    allFold-fusion : forall 
-      {is}(ts : All (C -Tree L) is) ->
-      allFold f g (allFold l [8<_] ts) ~ allFold (l - fold f g) g ts
-    fold-fusion t = {!!}
-    allFold-fusion ts = {!!}
+    fold-fusion : forall {i}(t : (C -Tree L) i) -> fold f g (fold l [8<_] t) ~ fold (l - fold f g) g t
+    allFold-fusion : forall {is}(ts : All (C -Tree L) is) -> allFold f g (allFold l [8<_] ts) ~ allFold (l - fold f g) g ts
+    fold-fusion (leaf x) = r~
+    fold-fusion [8< x ] = {!!}
+    allFold-fusion [] = r~
+    allFold-fusion (t ,- ts) = {!!}
 
 -- Prove that fold is *extensional*, i.e., that two fold behave the same way
 -- if their base and step cases always behave the same way.
@@ -184,7 +198,7 @@ module _ {I : Set}{C : I >8 I} where
     where
     fold-ext    : forall {i}(t : (C -Tree L) i) -> fold f0 g0 t ~ fold f1 g1 t
     allFold-ext : forall {is}(ts : All (C -Tree L) is) -> allFold f0 g0 ts ~ allFold f1 g1 ts
-    fold-ext t = {!!}
+    fold-ext t = {!fold $~ ? ~$~ ?!}
     allFold-ext ts = {!!}
 
 
@@ -203,12 +217,17 @@ data _-Vec_ (X : Set) : Nat -> Set where
 -- Define their concatenation.
 
 _+V_ : forall {X m n} -> X -Vec m -> X -Vec n -> X -Vec (m +N n)
-xs +V ys = {!!}
+[] +V [] = []
+[] +V (y ,- ys) = y ,- ys
+(x ,- xs) +V  ys = x ,- (xs +V ys)
 
 infixr 10 _+V_
 
 -- We may define singletons of Xs (to put at the leaves of trees).
 
+-- data OneOf (X : Set) : Nat -> Set where
+--   oneOf : X -> OneOf X 1
+  
 OneOf : Set -> Nat -> Set
 OneOf X 1 = X
 OneOf X _ = Zero
@@ -222,8 +241,8 @@ OneOf X _ = Zero
 flatten : forall {X} ->
           [ Length -Tree OneOf X -:> (X -Vec_) ]
 flatten {X} = fold {V = (X -Vec_)}
-  {!!}
-  {!!}
+        (λ x → {!!})
+  λ x → {!!}
 
 
 ------------------------------------------------------------------------------
@@ -273,7 +292,8 @@ module BST
 -- Check that you can still write insert.
 
   insert : [ (BSTCut -Frag LeB') -:> BST -:> BST ]
-  insert (k , lk ,- ku ,- []) t = {!!}
+  insert (k , lk ,- ku ,- []) (leaf x) = {!!}
+  insert (k , lk ,- ku ,- []) [8< x ] = {!!}
 
 
 ------------------------------------------------------------------------------
@@ -298,6 +318,8 @@ module BST
 -- Please complete this datatype:
 
   data Cut23 : Nat * Bound * Bound -> Set where
+    -- 2-node : Key -> Bound
+    -- 3-node : Key -> Key -> Bound
     -- give a constructor for 2-nodes
     -- give a constructor for 3-nodes
 
@@ -456,6 +478,7 @@ module HUTTON where
 -- and exactly the well typed and well scoped terms.
 
   data Node : Ty -> Set where
+  
     -- you fill this in
 
   Syntax : Ty >8 Ty
