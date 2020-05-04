@@ -66,10 +66,10 @@ module _ where
   compose-neutral-thing (Monoid-List X) xs = r~
   compose-thing-neutral (Monoid-List X) [] = r~
   {- use $~ to apply func to both sides of an equation -}
-  compose-thing-neutral (Monoid-List X) (x ,- xs) = x ,-_ $~ {!compose-thing-neutral!}
+  compose-thing-neutral (Monoid-List X) (x ,- xs) = x ,-_ $~ compose-thing-neutral (Monoid-List X) xs
   compose-compose (Monoid-List X) [] ys zs = r~
   {- compose-compose x (compose-compose +L xs ys) zs -}
-  compose-compose (Monoid-List X) (x ,- xs) ys zs = x ,-_ $~ ({!!})
+  compose-compose (Monoid-List X) (x ,- xs) ys zs = x ,-_ $~ (compose-compose (Monoid-List X) xs ys zs)
 
 
 ------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ module _ {X : Set}(M : Monoid X) where
   transform-compose reduce (x ,- xs) ys =
     (compose x (transform reduce (xs +L ys))) ~[(compose x) $~
     (transform-compose reduce xs ys) > compose x (compose (transform reduce xs) (transform reduce ys)) <
-    {! ?!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
+    compose $~ {!transform reduce ?!} ~$~ {!transform-compose reduce ? ?!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
     [QED]
 
 
@@ -159,7 +159,7 @@ module _ {X Y}(MY : Monoid Y)(h : Monoid-List X -Monoid> MY)
     transform h xs ~ transform (reduce MY) (list single xs)
   transform-reduce [] = transform-neutral h
   {- cons with empty list to make singletion list -}
-  transform-reduce (x ,- xs) = transform h (x ,- xs) ~[ transform-compose h (x ,- []) xs  > (compose $~ {!transform-reduce ?!} ~$~ transform-reduce xs)
+  transform-reduce (x ,- xs) = transform h (x ,- xs) ~[ transform-compose h (x ,- []) xs  > (compose $~ r~ ~$~ transform-reduce xs)
 
 
 ------------------------------------------------------------------------------
@@ -437,9 +437,9 @@ module _ {X : Set} where
 -- Deduce that oi is unique.
 
   oi~ : forall {xs : List X}(th ph : xs <: xs) -> th ~ ph
-  oi~ (x ^- th) = {!?!}
-  oi~ (x ,- th) = {!?!}
-  oi~ [] = {!!}
+  oi~ (x ^- th) = λ ph → {!!}
+  oi~ (x ,- th) = λ ph → {!!}
+  oi~ [] = λ ph → {!!}
 
 
 ------------------------------------------------------------------------------
@@ -500,6 +500,7 @@ module _ {X : Set} where
   deal : {xs ys zs : List X}
        {th : xs <: zs}{ph : ys <: zs}(s : Splitting th ph)
        {P : X -> Set}(pzs : All P zs) -> Deal s pzs
-  deal s pzs = {!!}
+  deal [] [] = {!!}
+  deal s (p ,- pzs) = {!!}
 
 -- We say that Deal is a *view* of All.
