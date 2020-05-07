@@ -96,7 +96,7 @@ module _ {X : Set}(M : Monoid X) where
   transform-compose reduce (x ,- xs) ys =
     (compose x (transform reduce (xs +L ys))) ~[(compose x) $~
     (transform-compose reduce xs ys) > compose x (compose (transform reduce xs) (transform reduce ys)) <
-    compose $~ {!transform reduce ?!} ~$~ {!transform-compose reduce ? ?!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
+    compose $~ {!!} ~$~ {!transform-compose reduce xs ys!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
     [QED]
 
 
@@ -437,9 +437,12 @@ module _ {X : Set} where
 -- Deduce that oi is unique.
 
   oi~ : forall {xs : List X}(th ph : xs <: xs) -> th ~ ph
-  oi~ (x ^- th) = λ ph → {!!}
-  oi~ (x ,- th) = λ ph → {!!}
-  oi~ [] = λ ph → {!!}
+  oi~ (x ^- th) (.x ^- ph) = x ^-_ $~ {!!}
+  oi~ (x ^- th) (.x ,- ph) = {!!}
+  oi~ (x ,- th) (.x ^- ph) = {!!}
+  -- possible cases
+  oi~ (x ,- th) (.x ,- ph) = x ,-_ $~ oi~ th ph
+  oi~ [] [] = r~
 
 
 ------------------------------------------------------------------------------
@@ -472,8 +475,12 @@ module _ {X : Set} where
     List X   >< \ ys ->    -- ...what wasn't from xs...
     ys <: zs >< \ ph ->  -- ...but was in zs...
     Splitting th ph        -- ...hence forms a splitting.
-  thinSplit (x ^- th) = _ , (_ , {! thinSplit ?!})
-  thinSplit (x ,- th) = _ , (_ , {!?!})
+{-  thinSplit {xs} (_^-_ x {zs = zs} th) = x ,- zs , ({! th!} , {!thinSplit ?!})
+  thinSplit (_,-_ x {ys} {zs} th) = {!!} , ({!!} , {!!}) -}
+  thinSplit (x ^- th) with thinSplit th
+  ... | ys , ph , s = x ,- ys , (x ,- ph , x ^,- s)
+  thinSplit (x ,- th) with thinSplit th
+  ... | ys , ph , s = ys , (x ^- ph , x ,^- s)
   thinSplit [] = _ , (_ , [])
 
 -- Given a splitting, show that we can "riffle" together a bunch
@@ -484,7 +491,9 @@ module _ {X : Set} where
                 {P : X -> Set} ->
                 All P xs -> Splitting th ph -> All P ys ->
                 All P zs
-  riffle pxs s pys = {!!}
+  riffle pxs (w ^,- s) (p ,- pys) = p ,- (riffle pxs s pys)
+  riffle (p ,- pxs) (w ,^- s) pys = p ,- riffle pxs s pys
+  riffle [] [] pys = pys
 
 -- Moreover, we can use a splitting to invert "riffle", dealing
 -- out an "All P" for the whole list into the parts for each
@@ -500,7 +509,10 @@ module _ {X : Set} where
   deal : {xs ys zs : List X}
        {th : xs <: zs}{ph : ys <: zs}(s : Splitting th ph)
        {P : X -> Set}(pzs : All P zs) -> Deal s pzs
-  deal [] [] = {!!}
-  deal s (p ,- pzs) = {!!}
+  deal (w ^,- s) (y ,- pys) with deal s pys
+  deal (w ^,- s) (y ,- .(riffle pxs s pys)) | dealt pxs pys = dealt pxs (y ,- pys)
+  deal (w ,^- s) (y ,- pys) with deal s pys
+  deal (w ,^- s) (y ,- .(riffle pxs s pys)) | dealt pxs pys = dealt (y ,- pxs) pys
+  deal [] y = dealt [] y
 
 -- We say that Deal is a *view* of All.
