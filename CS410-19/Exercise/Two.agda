@@ -449,6 +449,22 @@ module BST
   Tree23 : Nat * Bound * Bound -> Set
   Tree23 = TwoThree -Tree Leafy
 
+-- *** JAMES: I have managed to write an example starting as follows.
+
+  example : (a b c d : Key) → Le a b → Le b c → Le c d → Tree23 (2 , -inf , +inf)
+  example a b c d ab bc cd = {!!}
+  
+{- A possible tree using the data given by the arguments looks like this:
+
+           __c__
+         _/     \_
+        /         \
+      a,b          d
+    _/ | \_       / \
+   /   |   \     /   \
+  <>  ab   bc   cd   <>
+-}
+
 -- Now, let's figure out how to do insertion with *rebalancing*. When you
 -- insert into a tree of a given height, most of the time, there's enough
 -- slack in the tree to return a tree of the same height. E.g., if you
@@ -588,12 +604,21 @@ module HUTTON where
   data Node : Ty -> Set where
     synBol : Node two
     synNum : Node nat
+    synVar : {!Node!}
+    -- can u add two bools?
+    synExp : Node nat -> Node nat -> Node nat
+    -- abstract T -> T -> T?
+    synIf  : Node two -> {!Node!} -> {!!} -> {!!}
   
     -- you fill this in
 
   Syntax : Ty >8 Ty
   Cut    (Syntax T) = Node T
-  pieces (Syntax T) c = T ,- {!!}
+  pieces (Syntax .two) synBol = two ,- []
+  pieces (Syntax .nat) synNum = nat ,- []
+  pieces (Syntax .{!!}) synVar = {!!}
+  pieces (Syntax .nat) (synExp c c₁) = {!c!} ,- {!!}
+  pieces (Syntax .{!!}) (synIf c x x₁) = {!!}
 
   Expr : (Ty -> Set)   -- which variables are in scope
       -> (Ty -> Set)   -- which expressions are well typed
@@ -612,10 +637,18 @@ module HUTTON where
 
 -- Write an interpreter for this language as a fold.
 
+  interpret : ∀ {i} → Node i >< (λ a → All Value (pieces (Syntax i) a)) → Value i
+  -- instantiate types kinda randomly -> might try to base it off of snd?
+  interpret (synBol , snd) = tt
+  interpret (synNum , snd) = su ze
+  interpret (synVar , snd) = {!!}
+  interpret (synExp fst₁ fst₂ , snd) = su ze
+  interpret (synIf fst₁ x x₁ , snd) = {!!}
+
   eval : forall {Var}
       -> [      Var -:> Value ]  -- you know the values of the variables,
       -> [ Expr Var -:> Value ]  -- so what is the value of an expression?
-  eval gamma = fold gamma {!val gamma!}
+  eval gamma = fold gamma interpret
 
 
 ------------------------------------------------------------------------------
@@ -713,10 +746,11 @@ Failed to solve the following constraints:
   KLEISLI : forall {I}(C : I >8 I) -> Cat \ S T -> UpS (S =K C > T)
   identity (KLEISLI C) = up λ x → leaf x
   compose (KLEISLI C) (up f) (up g) = up (f -K- g)
-  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → {!!})
+--  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext (down g0) (down g1) (down g) (λ x → down g0 {!!}) {!!} {!!} {!down f1 s!})
+  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext {!!} {!!} {!!} {!!} {!!} {!!} {!down f1 s!})
   compose-identity-arrow (KLEISLI C) = λ f → up (λ s → r~)
   compose-arrow-identity (KLEISLI C) = λ f → up (λ s → fold-rebuild (down f s))
-  compose-compose (KLEISLI C) f g h = up λ s → {!!}
+  compose-compose (KLEISLI C) {U = U} f g h = up λ s → fold-fusion (down g) (down h) (λ x → down h {!!}) {!!} 
 
 
 ------------------------------------------------------------------------------
