@@ -747,10 +747,10 @@ Failed to solve the following constraints:
   identity (KLEISLI C) = up λ x → leaf x
   compose (KLEISLI C) (up f) (up g) = up (f -K- g)
 --  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext (down g0) (down g1) (down g) (λ x → down g0 {!!}) {!!} {!!} {!down f1 s!})
-  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext {!!} {!!} {!!} {!!} {!!} {!!} {!down f1 s!})
+  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext (down g0) (down g1) (down g) (λ x → down (compose (KLEISLI C) f0 g0) s) (λ x → down (compose (KLEISLI C) f1 g1) s) (λ vs → {!!}) {!down f0 s!})
   compose-identity-arrow (KLEISLI C) = λ f → up (λ s → r~)
   compose-arrow-identity (KLEISLI C) = λ f → up (λ s → fold-rebuild (down f s))
-  compose-compose (KLEISLI C) {U = U} f g h = up λ s → fold-fusion (down g) (down h) (λ x → down h {!!}) {!!} 
+  compose-compose (KLEISLI C) f g h = up λ s → fold-fusion (down g) (down h) (λ x → down (compose (KLEISLI C) (compose (KLEISLI C) f g) h) {!i₂!}) {!down f s!} 
 
 
 ------------------------------------------------------------------------------
