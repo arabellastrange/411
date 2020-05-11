@@ -617,7 +617,7 @@ module HUTTON where
   pieces (Syntax .two) synBol = two ,- []
   pieces (Syntax .nat) synNum = nat ,- []
   pieces (Syntax .{!!}) synVar = {!!}
-  pieces (Syntax .nat) (synExp c c₁) = {!c!} ,- {!!}
+  pieces (Syntax .nat) (synExp c c₁) = nat ,- []
   pieces (Syntax .{!!}) (synIf c x x₁) = {!!}
 
   Expr : (Ty -> Set)   -- which variables are in scope
@@ -638,11 +638,11 @@ module HUTTON where
 -- Write an interpreter for this language as a fold.
 
   interpret : ∀ {i} → Node i >< (λ a → All Value (pieces (Syntax i) a)) → Value i
-  -- instantiate types kinda randomly -> might try to base it off of snd?
-  interpret (synBol , snd) = tt
-  interpret (synNum , snd) = su ze
+  -- instantiate types kinda randomly -> might try to base it off of snd? -- DONE?
+  interpret (synBol , x ,- snd) = x
+  interpret (synNum , x ,- snd) = x
   interpret (synVar , snd) = {!!}
-  interpret (synExp fst₁ fst₂ , snd) = su ze
+  interpret (synExp fst₁ fst₂ , x ,- snd) = x
   interpret (synIf fst₁ x x₁ , snd) = {!!}
 
   eval : forall {Var}
