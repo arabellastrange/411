@@ -424,7 +424,7 @@ module BST
   -}
   
   data Cut23 : Nat * Bound * Bound -> Set where
-    twoNode : {!!}
+    twoNode : {!? , ?!}
     threeNode : {!!}
     -- 2-node : (k :  Key) -> (l : Bound) -> (u : Bound) -> (h : Nat) -> Cut23 {!!} -> Cut23 {!!}  -> Cut23 {!!}
     -- 3-node : (k1 : Key) -> (k2 : Key) -> (l :  Bound) -> (u : Bound) -> (h : Nat) -> Cut23 {!!} -> Cut23 {!!} -> Cut23 {!!}
@@ -435,7 +435,8 @@ module BST
 
   TwoThree : (Nat * Bound * Bound) >8 (Nat * Bound * Bound)
   Cut (TwoThree hlu) = Cut23 hlu
-  pieces (TwoThree hlu) c = {!!}
+  pieces (TwoThree .{!!}) twoNode = ({!!} , ({!!} , {!!})) ,- {!!}
+  pieces (TwoThree .{!!}) threeNode = {!!}
 
 -- Meanwhile, leaves must have height exactly 0, and should, as before,
 -- contain ordering evidence.
@@ -452,7 +453,7 @@ module BST
 -- *** JAMES: I have managed to write an example starting as follows.
 
   example : (a b c d : Key) → Le a b → Le b c → Le c d → Tree23 (2 , -inf , +inf)
-  example a b c d ab bc cd = {!!}
+  example a b c d ab bc cd = [8<_] ({!!} , {!!})
   
 {- A possible tree using the data given by the arguments looks like this:
 
@@ -480,7 +481,7 @@ module BST
 
   data CutInsert (nlu : Nat * Bound * Bound) : Set where
     asSmall : CutInsert nlu
-    tooTall : {- what goes here? -> -} CutInsert nlu
+    tooTall : {!!}  CutInsert nlu
 
 -- Likewise, explain what pieces you get when we're too tall.
 
@@ -604,21 +605,14 @@ module HUTTON where
   data Node : Ty -> Set where
     synBol : Node two
     synNum : Node nat
-    synVar : {!Node!}
-    -- can u add two bools?
+    -- can u add two bools? -- not needed 
     synExp : Node nat -> Node nat -> Node nat
     -- abstract T -> T -> T?
-    synIf  : Node two -> {!Node!} -> {!!} -> {!!}
+    synIf  : forall {T} -> Node two ->  Node T -> Node T -> Node T
   
-    -- you fill this in
-
   Syntax : Ty >8 Ty
-  Cut    (Syntax T) = Node T
-  pieces (Syntax .two) synBol = two ,- []
-  pieces (Syntax .nat) synNum = nat ,- []
-  pieces (Syntax .{!!}) synVar = {!!}
-  pieces (Syntax .nat) (synExp c c₁) = nat ,- []
-  pieces (Syntax .{!!}) (synIf c x x₁) = {!!}
+  Cut (Syntax T) = Node T
+  pieces (Syntax T) c = T ,- []
 
   Expr : (Ty -> Set)   -- which variables are in scope
       -> (Ty -> Set)   -- which expressions are well typed
@@ -639,11 +633,7 @@ module HUTTON where
 
   interpret : ∀ {i} → Node i >< (λ a → All Value (pieces (Syntax i) a)) → Value i
   -- instantiate types kinda randomly -> might try to base it off of snd? -- DONE?
-  interpret (synBol , x ,- snd) = x
-  interpret (synNum , x ,- snd) = x
-  interpret (synVar , snd) = {!!}
-  interpret (synExp fst₁ fst₂ , x ,- snd) = x
-  interpret (synIf fst₁ x x₁ , snd) = {!!}
+  interpret (fst , x ,- snd) = x
 
   eval : forall {Var}
       -> [      Var -:> Value ]  -- you know the values of the variables,
@@ -705,52 +695,16 @@ module _ where
 
 -- Hint: fold-rebuild, fold-fusion and fold-ext.
 
-{-
-
-Failed to solve the following constraints:
-  _1018
-    := λ {I} C {R} {S} {T} {U} f g h {i} s →
-         fold-fusion (?16 (C = C) (f = f) (g = g) (h = h) (s = s))
-         (?17 (C = C) (f = f) (g = g) (h = h) (s = s))
-         (?18 (C = C) (f = f) (g = g) (h = h) (s = s))
-         (?19 (C = C) (f = f) (g = g) (h = h) (s = s))
-    [blocked on problem 2959]
-  [2959, 2963] fold (λ {i} → ?16 - (λ {a} → fold ?17 ?18)) ?18 ?19
-                 = fold (down (compose (KLEISLI C) g h)) makeTree (down f s)
-                 : _1017
-  [2959, 2962] fold ?17 ?18 (fold ?16 (λ {i} → [8<_]) ?19)
-                 = fold (down h) makeTree (fold (down g) makeTree (down f s))
-                 : _1017
-  [2959] _1016
-           := λ {I} C {R} {S} {T} {U} f g h {i} s →
-                _V_1010 (C = C) (f = f) (g = g) (h = h) (s = s)
-                (_i_1014 (C = C) (f = f) (g = g) (h = h) (s = s))
-           [blocked on problem 2961]
-  [2959, 2961] _V_1010 _i_1014 = (C -Tree U) i₁ : Set
--}
-
-{-
- [2911, 2915] fold ?16 ?19 ?21 = fold (down g1) makeTree (down f1 s)
-                 : _1011
-  [2911, 2914] fold ?15 ?18 ?21 = fold (down g0) makeTree (down f0 s)
-                 : _1011
-  [2911] _1010
-           := λ {I} C {R} {S} {T} {f0} {f1} f {g0} {g1} g {i} s →
-                _V_1001 (C = C) (f = f) (g = g) (s = s)
-                (_i_1008 (C = C) (f = f) (g = g) (s = s))
-           [blocked on problem 2913]
-  [2911, 2913] _V_1001 _i_1008 = (C -Tree T) i : Set
-
--}
-
   KLEISLI : forall {I}(C : I >8 I) -> Cat \ S T -> UpS (S =K C > T)
   identity (KLEISLI C) = up λ x → leaf x
   compose (KLEISLI C) (up f) (up g) = up (f -K- g)
---  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext (down g0) (down g1) (down g) (λ x → down g0 {!!}) {!!} {!!} {!down f1 s!})
-  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext (down g0) (down g1) (down g) (λ x → down (compose (KLEISLI C) f0 g0) s) (λ x → down (compose (KLEISLI C) f1 g1) s) (λ vs → {!!}) {!down f0 s!})
+--  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext (down g0) (down g1) (down g) (λ x → down (compose (KLEISLI C) f0 g0) s) (λ x → down (compose (KLEISLI C) f1 g1) s) (λ vs → {!!}) {!down f0 s!})
+  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → (fold-ext (down g0) (down g1) (down g) makeTree makeTree (λ vs → r~) (down f0 s) -~- {!!} ))
+-- compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → {!!})
   compose-identity-arrow (KLEISLI C) = λ f → up (λ s → r~)
   compose-arrow-identity (KLEISLI C) = λ f → up (λ s → fold-rebuild (down f s))
-  compose-compose (KLEISLI C) f g h = up λ s → fold-fusion (down g) (down h) (λ x → down (compose (KLEISLI C) (compose (KLEISLI C) f g) h) {!i₂!}) {!down f s!} 
+-- compose-compose (KLEISLI C) f g h = up λ s → fold-fusion (down g) (down h) (λ x → down (compose (KLEISLI C) (compose (KLEISLI C) f g) h) {!i₂!}) {!down f s!}
+  compose-compose (KLEISLI C) f g h = up (λ s → fold-fusion (down g) (down h) makeTree (down f s))
 
 
 ------------------------------------------------------------------------------
@@ -771,11 +725,11 @@ pieces ((IJ ->8- JK) k) (fst , snd) with JK k
 
 -- OR
 _+>8+_ : forall {I O} -> I >8 O -> I >8 O -> I >8 O
--- Cut ((C +>8+ D) o) = ( C -Frag λ x → Cut (C o) ) o
--- pieces ((C +>8+ D) o) with D o
--- ... | Space cut piecesOf = {!assembler!}
-Cut ((C +>8+ D) o) = (C -Frag λ x → Cut (C o)) o
-pieces ((C +>8+ D) o) = {!!}
+-- abstract over C and D ???
+Cut (_+>8+_ C D o) with C o
+Cut ((C +>8+ D) o) | Space cut pieces = (C -Frag \ x -> Cut (C o)) o
+pieces ((C +>8+ D) o) with C o
+pieces ((C +>8+ D) o) | Space cut pieces₁ = {!!}
 
 -- Suppose we know a way of cutting Os to make Is. Show that we can add an
 -- "orthogonal extra dimension" X to both inside and outside shapes, either
@@ -785,19 +739,15 @@ pieces ((C +>8+ D) o) = {!!}
 -- rectangle, giving the pieces the same height as the rectangle. Ditto,
 -- swapping the roles of heights and widths.
 
-_>8|_ : forall {I O}
-    -> I >8 O
-    -> forall X
-    -> (I * X) >8 (O * X)
-Cut ((C >8| X) (fst , snd)) = X
-pieces ((C >8| X) (fst , snd)) = {!!}
+_>8|_ : forall {I O} -> I >8 O -> forall X -> (I * X) >8 (O * X)
+Cut ((C >8| X) (fst , snd)) = ((λ x → C fst) -Frag λ x → X) (fst , snd)
+pieces ((C >8| X) (fst , snd)) with C fst
+pieces ((C >8| X) (fst , snd)) | Space Cut pieces = λ x → ({!!} , snd) ,- [] 
 
-_|>8_ : forall {I O}
-    -> forall X
-    -> I >8 O
-    -> (X * I) >8 (X * O)
-Cut ((X |>8 C) (fst , snd)) = X
-pieces ((X |>8 C) (fst , snd)) = {!!}
+_|>8_ : forall {I O} -> forall X -> I >8 O -> (X * I) >8 (X * O)
+Cut ((X |>8 C) (fst , snd)) = ((λ x → C snd) -Frag λ x → X) (fst , snd)
+pieces ((X |>8 C) (fst , snd)) with C snd
+pieces ((X |>8 C) (fst , snd)) | Space Cut pieces = λ x → (fst , {!!}) ,- []
 
 module _ {I J : Set} where
 
@@ -809,7 +759,7 @@ module _ {I J : Set} where
 --       or like D in the J-dimension, leaving the I-dimension alone
 
   _|+|_ : I >8 I -> J >8 J -> (I * J) >8 (I * J)
-  C |+| D = {!!}
+  (C |+| D) (fst , snd) = {!? +>8+ ?!}
 
 -- Congratulations! If you've made it this far, you can now talk about how
 -- to *tile* rectangular spaces, like your screen.
