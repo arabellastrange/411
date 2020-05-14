@@ -14,6 +14,7 @@ open import Lib.Nat
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
+-- Conor: 43/50
 
 ------------------------------------------------------------------------------
 -- (I) Lists are Very Special Monoids
@@ -51,6 +52,8 @@ module _ where
 -- 1.1 Implement concatenation for lists. Prove it yields a monoid.
 ------------------------------------------------------------------------------
 
+-- Conor: 4/4
+
 module _ where
 
   open Monoid
@@ -76,6 +79,8 @@ module _ where
 -- 1.2 Implement "reduce" for lists. Prove it yields a monoid homomorphism.
 ------------------------------------------------------------------------------
 
+-- Conor: 1/2
+
 module _ {X : Set}(M : Monoid X) where
 
   open Monoid M
@@ -94,9 +99,18 @@ module _ {X : Set}(M : Monoid X) where
   transform-compose reduce [] ys = compose-neutral-thing (transform reduce ys) ~o
   {- ~[ and > are signpost functions - see definition -} 
   transform-compose reduce (x ,- xs) ys =
-    (compose x (transform reduce (xs +L ys))) ~[(compose x) $~
-    (transform-compose reduce xs ys) > compose x (compose (transform reduce xs) (transform reduce ys)) <
-    compose $~ {!!} ~$~ {!transform-compose reduce xs ys!} ]~ compose ( transform reduce (x ,- xs)) (transform reduce ys)
+    (compose x (transform reduce (xs +L ys)))
+         ~[(compose x) $~ (transform-compose reduce xs ys) >
+    compose x (compose (transform reduce xs) (transform reduce ys))
+    {- Conor: this is how it was
+         < compose $~ {!!} ~$~ {!transform-compose reduce xs ys!} ]~
+    -}
+    -- Conor: this is the plan for the fix
+      < {!compose-compose!} ]~
+    compose (compose x (transform reduce xs)) (transform reduce ys)
+      ~[ r~ >
+    -- Conor: end of fix
+    compose ( transform reduce (x ,- xs)) (transform reduce ys)
     [QED]
 
 
@@ -104,6 +118,8 @@ module _ {X : Set}(M : Monoid X) where
 -- 1.3 Implement map for lists. Prove it respects identity and composition.
 -- Prove, moreover, that map always yields monoid homomorphisms
 ------------------------------------------------------------------------------
+
+-- Conor: 6/6
 
 list : forall {X Y} -> (X -> Y) -> List X -> List Y
 list f [] = []
@@ -141,6 +157,8 @@ module _ {X Y}(f : X -> Y)
 -- 1.4 Establish this special fact about monoid homomorphisms from *lists*.
 ------------------------------------------------------------------------------
 
+-- Conor: 2/2
+
 module _ {X Y}(MY : Monoid Y)(h : Monoid-List X -Monoid> MY)
   where  -- h is any old 
 
@@ -176,6 +194,8 @@ data All {X}(P : X -> Set) : List X -> Set where
 -- 1.5 Applicative Functor Structure
 ------------------------------------------------------------------------------
 
+-- Conor: 7/8
+
 -- Show that if P is always true, so is All P
 
 pureAll : forall {X}{P : X -> Set} ->
@@ -194,6 +214,8 @@ fs <*All*> [] = []
 (f ,- fs) <*All*> (s ,- ss) = f s ,- (fs <*All*> ss)
 
 -- Use the above two gadgets to define map for All
+
+-- Conor: all f ss = pureAll f <*All*> ss
 
 all : forall {X}{S T : X -> Set} ->
   [ S -:> T ] -> [ All S -:> All T ]
@@ -303,6 +325,8 @@ thinOdds = (0 ^- 1 ,- 2 ^- 3 ,- 4 ^- 5 ,- 6 ^- []) ,- []
 -- 1.6 Categorical Structure
 ------------------------------------------------------------------------------
 
+-- Conor: 6/7
+
 module _ {X : Set} where
 -- Construct the identity thinning from any list to itself.
 
@@ -314,6 +338,7 @@ module _ {X : Set} where
 -- Give composition for thinnings. Minimize the number of cases.
 
   _-<-_ : forall {X}{xs ys zs : List X} -> xs <: ys -> ys <: zs -> xs <: zs
+  -- Conor: good to see this case first!
   {- drop straight away -} 
   th -<- x ^- ph = x ^- (th -<- ph)
   {- the case for keep for filter one drop in filter 2 -}
@@ -338,6 +363,8 @@ module _ {X : Set} where
   (x ,- th) -<-oi = x ,-_ $~ (th -<-oi)
   [] -<-oi = r~
 
+  -- Conor: you need only five cases
+
   assoc-<- : forall {ws xs ys zs : List X}
                (th0 : ws <: xs)(th1 : xs <: ys)(th2 : ys <: zs) ->
                (th0 -<- th1) -<- th2 ~ th0 -<- (th1 -<- th2)
@@ -353,6 +380,8 @@ module _ {X : Set} where
 ------------------------------------------------------------------------------
 -- 1.7 Selecting
 ------------------------------------------------------------------------------
+
+-- Conor: 5/5
 
 -- We can use the "selection" interpretation of thinnings to act
 -- on data indexed by lists.
@@ -372,6 +401,9 @@ module _ {X : Set} where
               select oi pxs ~ pxs
   select-oi [] = r~
   select-oi (x ,- pxs) = x ,-_ $~ select-oi pxs
+
+-- Conor: again, working from the right would yield fewer cases;
+-- but no style warning, no penalty here
 
   select-<- : forall {xs ys zs : List X}{P : X -> Set} ->
               (th : xs <: ys)(ph : ys <: zs) -> (pzs : All P zs) ->
@@ -397,6 +429,8 @@ module _ {X : Set} where
 -- 1.8 Emptiness
 ------------------------------------------------------------------------------
 
+-- Conor: 2/2
+
 -- Show that there is a unique thinning from the empty list to any other.
 
   oe : forall {xs : List X} -> [] <: xs
@@ -419,8 +453,20 @@ module _ {X : Set} where
 -- 1.9 Antisymmetry
 ------------------------------------------------------------------------------
 
+-- Conor: 2/6
+
 -- Show that if two lists are mutually embeddable, they are equal
 -- and the embeddings are the identity.
+
+-- Conor: need to prove some sort of helper saying "big doesn't embed into small"
+-- like this
+
+  no-tardis : forall {x : X}{xs : List X} ->
+    x ,- xs <: xs -> {T : Set} -> T
+  no-tardis (x ^- bad) = no-tardis (_ ^- oi -<- bad)
+  no-tardis (x ,- bad) = no-tardis bad
+
+-- Conor: end of demo
 
   antisym : forall {xs ys : List X}
              (th : xs <: ys)(ph : ys <: xs) ->
@@ -428,6 +474,9 @@ module _ {X : Set} where
   antisym (x ^- th) (x₁ ^- ph) = {!antisym th ?!}
   antisym (x ^- th) (.x ,- ph) = {!antisym ? ?!}
   antisym (x ,- th) (.x ^- ph) = {!antisym ? ?!}
+  -- Conor: demo
+  -- antisym (x ^- th) ph = no-tardis (ph -<- th)
+  -- Conor: end demo
   -- only these two cases are actually possible 
   antisym (x ,- th) (.x ,- ph) with antisym th ph
   antisym (x ,- th) (.x ,- ph) | r~ , fst₁ , snd₁ = r~ , ((x ,-_ $~ (fst₁)) , ( x ,-_ $~ snd₁))
@@ -437,6 +486,12 @@ module _ {X : Set} where
 -- Deduce that oi is unique.
 
   oi~ : forall {xs : List X}(th ph : xs <: xs) -> th ~ ph
+  -- Conor: demo
+  {-
+  oi~ th ph with antisym th ph
+  oi~ .oi .oi | r~ , r~ , r~ = r~
+  -}
+  -- Conor: end of demo
   oi~ (x ^- th) (.x ^- ph) = x ^-_ $~ {!!}
   oi~ (x ^- th) (.x ,- ph) = {!!}
   oi~ (x ,- th) (.x ^- ph) = {!!}
@@ -448,6 +503,8 @@ module _ {X : Set} where
 ------------------------------------------------------------------------------
 -- 1.10 Splittings
 ------------------------------------------------------------------------------
+
+-- Conor: 8/8
 
 -- If we have two thinnings,
 --   th : xs <: zs
@@ -491,6 +548,7 @@ module _ {X : Set} where
                 {P : X -> Set} ->
                 All P xs -> Splitting th ph -> All P ys ->
                 All P zs
+  -- Conor: nice to see this case first
   riffle pxs (w ^,- s) (p ,- pys) = p ,- (riffle pxs s pys)
   riffle (p ,- pxs) (w ,^- s) pys = p ,- riffle pxs s pys
   riffle [] [] pys = pys
