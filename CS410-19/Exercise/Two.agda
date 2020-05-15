@@ -21,6 +21,8 @@ open import CS410-19.Exercise.One
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
+Conor: 26/50
+
 -- The following record type gives a way to describe the possible ways to
 -- cut shapes into finitely many pieces. The shape of each piece is given
 -- by a value in type I. You give a type, Cut, to specify the ways things can
@@ -64,6 +66,8 @@ _-Frag_ : {I O : Set}(C : I >8 O) -> (I -> Set) -> (O -> Set)
 -- 2.1 "Identity" and "Composition"
 ------------------------------------------------------------------------------
 
+-- Conor: 10/10
+
 -- Define the identity cutting, where there is one piece, and the inside shape
 -- is the same as the output shape.
 -- cut nothing return everything
@@ -82,6 +86,7 @@ pieces (Id>8 i) =  λ x → i ,- []
 -- isomorphism.
 
 -- assembler (turns list of lists into list)
+-- Conor: this is quite "fused" but does the right thing.
 hassembler : ∀ {J} {I} (w : List J) (IJ : J → CutInto I) → All (λ x → Cut (IJ x)) w → List I
 hassembler [] y [] = []
 hassembler (x ,- x1) y (z ,- z1) = pieces (y x) z +L hassembler x1 y z1
@@ -123,6 +128,8 @@ to->8- IJ JK (c , ijps) = (c , all fst ijps) ,  help ijps
        All P (hassembler (pieces (JK i) fst₁) IJ {!snd!}) →
        All (λ o → Cut (IJ o) >< (λ a → All P (pieces (IJ o) a))) (js)
 help x ijps = {!ijps!} -}
+
+-- Conor: could combine head and tail, but no big deal
 
 head : ∀ {J} {xs : List J} {ys : List J} {P : J → Set} →
       All P (xs +L ys) →
@@ -174,6 +181,8 @@ module _
 ------------------------------------------------------------------------------
 -- 2.2 Folding over Trees
 ------------------------------------------------------------------------------
+
+-- Conor: 6/6
 
 module _ {I : Set}{C : I >8 I} where
 
@@ -255,6 +264,8 @@ all f (s ,- ss) = f s ,- all f ss -}
 -- 2.3 Flattening Trees
 ------------------------------------------------------------------------------
 
+-- Conor: 2/2
+
 -- By way of an example of folding, let us flatten.
 
 -- Here are lists indexed by length (a.k.a. "vectors").
@@ -266,6 +277,7 @@ data _-Vec_ (X : Set) : Nat -> Set where
 -- Define their concatenation.
 
 _+V_ : forall {X m n} -> X -Vec m -> X -Vec n -> X -Vec (m +N n)
+-- Conor: case analysis on second arg is redundant
 [] +V [] = []
 [] +V (y ,- ys) = y ,- ys
 (x ,- xs) +V  ys = x ,- (xs +V ys)
@@ -291,7 +303,9 @@ OneOf X _ = Zero -}
 {-  flatten : Tree -> List
     flatten leaf         = []
     flatten (node l x r) = flatten l ++ x ,- flatten r -}
-    
+
+
+-- Conor: good to pull this out as a helper
 helper : ∀ {X} {i} → OneOf X i → X -Vec i
 helper (oneOf x) =  x ,- []
 
@@ -312,6 +326,8 @@ flatten {X} = fold {V = (X -Vec_)} (helper) helper2
 ------------------------------------------------------------------------------
 -- 2.4 Binary Search Trees, Revisited
 ------------------------------------------------------------------------------
+
+-- Conor: 2/2
 
 -- Remember this business from Lecture One?
 
@@ -382,6 +398,8 @@ module BST
 -- 2.5 Two-Three Trees
 ------------------------------------------------------------------------------
 
+-- Conor: 0/14, and I 'm sorry for the pain it caused.
+
 -- [2-3 trees](https://en.wikipedia.org/wiki/2%E2%80%933_tree) are a variant
 -- on binary search trees which are well enough *balanced* to ensure
 -- logarithmic access times. Crucially
@@ -424,8 +442,9 @@ module BST
   -}
   
   data Cut23 : Nat * Bound * Bound -> Set where
-    twoNode : {!!}
-    threeNode : {!!}
+    -- Conor: these were undeclared; I was just demonstrating while marking
+    twoNode : forall {h l u} -> Key -> Cut23 (su h , l , u)
+    threeNode :  forall {h l u} -> Key -> Key -> Cut23 (su h , l , u)
     -- 2-node : (k :  Key) -> (l : Bound) -> (u : Bound) -> (h : Nat) -> Cut23 {!!} -> Cut23 {!!}  -> Cut23 {!!}
     -- 3-node : (k1 : Key) -> (k2 : Key) -> (l :  Bound) -> (u : Bound) -> (h : Nat) -> Cut23 {!!} -> Cut23 {!!} -> Cut23 {!!}
     -- give a constructor for 2-nodes
@@ -433,11 +452,14 @@ module BST
 
 -- With that done, explain the subtree structure:
 
+-- Conor: I wrote this definition while marking.
   TwoThree : (Nat * Bound * Bound) >8 (Nat * Bound * Bound)
   Cut (TwoThree hlu) = Cut23 hlu
-  pieces (TwoThree .{!!}) twoNode = ({!!} , ({!!} , {!!})) ,- {!!}
-  pieces (TwoThree .{!!}) threeNode = {!!}
-
+  pieces (TwoThree (su h , l , u)) (twoNode k)     =
+    (h , l , key k) ,- (h , key k , u) ,- []
+  pieces (TwoThree (su h , l , u)) (threeNode j k) =
+    (h , l , key j) ,- (h , key j , key k) ,- (h , key k , u) ,- []
+  {-
 -- Meanwhile, leaves must have height exactly 0, and should, as before,
 -- contain ordering evidence.
 
@@ -543,10 +565,12 @@ module BST
   sort : List Key -> OList (-inf , +inf)
   sort = makeBalTree - flattenBalTree
 
-
+-}
 ------------------------------------------------------------------------------
 -- 2.6 Hutton's Razor with Two and Nat
 ------------------------------------------------------------------------------
+
+-- Conor: 1/5
 
 -- Prof Graham Hutton of the University of Nottingham (he of Haskell book
 -- fame) is fond of exploring programming language concepts in a minimalist
@@ -602,17 +626,24 @@ module HUTTON where
 -- Your mission is to define a type of syntax trees which represent only
 -- and exactly the well typed and well scoped terms.
 
+-- Conor: The "Cut" should describe the data in *one* node, and not its subnodes,
   data Node : Ty -> Set where
     synBol : Node two
     synNum : Node nat
+    -- Conor: ^^ the base cases are ok
     -- can u add two bools? -- not needed 
-    synExp : Node nat -> Node nat -> Node nat
+    synExp : Node nat -> Node nat -> Node nat  -- Conor: the return type is ok
+    -- Conor: ^^^^^^^^^^^^^^^^^^^^^ the subnodes should not be there
     -- abstract T -> T -> T?
     synIf  : forall {T} -> Node two ->  Node T -> Node T -> Node T
+    -- Conor: same story here
   
   Syntax : Ty >8 Ty
   Cut (Syntax T) = Node T
   pieces (Syntax T) c = T ,- []
+  -- Conor: this says that all terms of type T have one subterm, also of type T
+  -- Conor: it's when you define "pieces" that you identify how many subterms there are
+  --        and what their types are.
 
   Expr : (Ty -> Set)   -- which variables are in scope
       -> (Ty -> Set)   -- which expressions are well typed
@@ -634,6 +665,7 @@ module HUTTON where
   interpret : ∀ {i} → Node i >< (λ a → All Value (pieces (Syntax i) a)) → Value i
   -- instantiate types kinda randomly -> might try to base it off of snd? -- DONE?
   interpret (fst , x ,- snd) = x
+  -- Conor: suspicious lack of adding or condition-testing
 
   eval : forall {Var}
       -> [      Var -:> Value ]  -- you know the values of the variables,
@@ -644,6 +676,8 @@ module HUTTON where
 ------------------------------------------------------------------------------
 -- 2.7 Monadic Structure
 ------------------------------------------------------------------------------
+
+-- Conor: 5/6
 
 makeTree : ∀ {I} {C : I → CutInto I} {T : I → Set} {i : I} → Cut (C i) >< (λ a → All (C -Tree T) (pieces (C i) a)) → (C -Tree T) i
 makeTree (fst , snd) = [8<_] (fst , snd)
@@ -699,7 +733,13 @@ module _ where
   identity (KLEISLI C) = up λ x → leaf x
   compose (KLEISLI C) (up f) (up g) = up (f -K- g)
 --  compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → fold-ext (down g0) (down g1) (down g) (λ x → down (compose (KLEISLI C) f0 g0) s) (λ x → down (compose (KLEISLI C) f1 g1) s) (λ vs → {!!}) {!down f0 s!})
+  -- Conor: this is where the mark went missing vvvv
   compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → (fold-ext (down g0) (down g1) (down g) makeTree makeTree (λ vs → r~) (down f0 s) -~- {!!} ))
+  -- Conor: I demonstrated how to do this jigsaw vvvvv
+  {-
+  down (compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g) r rewrite down f r =
+     fold-ext (down g0) (down g1) (down g) makeTree makeTree (\ _ -> r~) (down f1 r)
+  -}
 -- compose-respect (KLEISLI C) {f0 = f0} {f1} f {g0} {g1} g = up (λ s → {!!})
   compose-identity-arrow (KLEISLI C) = λ f → up (λ s → r~)
   compose-arrow-identity (KLEISLI C) = λ f → up (λ s → fold-rebuild (down f s))
@@ -710,6 +750,8 @@ module _ where
 ------------------------------------------------------------------------------
 -- 2.8 Combining Ways of Cutting
 ------------------------------------------------------------------------------
+
+-- Conor: 0/5
 
 -- Suppose we know two ways, C and D, of cutting up outside shapes O to leave
 -- inside pieces in I. Show how to represent the choice of cutting in either
@@ -726,6 +768,7 @@ pieces ((IJ ->8- JK) k) (fst , snd) with JK k
 -- OR
 _+>8+_ : forall {I O} -> I >8 O -> I >8 O -> I >8 O
 -- abstract over C and D ???
+-- Conor: Cut (_+>8+_ C D o) = Cut (C o) + Cut (D o) -- make a choice between the two ways of cutting
 {- Cut (_+>8+_ C D o) with C o
 Cut ((C +>8+ D) o) | Space cut pieces = (C -Frag \ x -> Cut (C o)) o
 pieces ((C +>8+ D) o) with C o
