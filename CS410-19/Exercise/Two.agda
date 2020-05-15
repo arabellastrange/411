@@ -424,7 +424,7 @@ module BST
   -}
   
   data Cut23 : Nat * Bound * Bound -> Set where
-    twoNode : {!? , ?!}
+    twoNode : {!!}
     threeNode : {!!}
     -- 2-node : (k :  Key) -> (l : Bound) -> (u : Bound) -> (h : Nat) -> Cut23 {!!} -> Cut23 {!!}  -> Cut23 {!!}
     -- 3-node : (k1 : Key) -> (k2 : Key) -> (l :  Bound) -> (u : Bound) -> (h : Nat) -> Cut23 {!!} -> Cut23 {!!} -> Cut23 {!!}
@@ -726,10 +726,12 @@ pieces ((IJ ->8- JK) k) (fst , snd) with JK k
 -- OR
 _+>8+_ : forall {I O} -> I >8 O -> I >8 O -> I >8 O
 -- abstract over C and D ???
-Cut (_+>8+_ C D o) with C o
+{- Cut (_+>8+_ C D o) with C o
 Cut ((C +>8+ D) o) | Space cut pieces = (C -Frag \ x -> Cut (C o)) o
 pieces ((C +>8+ D) o) with C o
-pieces ((C +>8+ D) o) | Space cut pieces₁ = {!!}
+pieces ((C +>8+ D) o) | Space cut pieces₁ = λ x → {!!} -}
+Cut ((C +>8+ D) o) = {!!}
+pieces ((C +>8+ D) o) = {!!}
 
 -- Suppose we know a way of cutting Os to make Is. Show that we can add an
 -- "orthogonal extra dimension" X to both inside and outside shapes, either
@@ -759,7 +761,7 @@ module _ {I J : Set} where
 --       or like D in the J-dimension, leaving the I-dimension alone
 
   _|+|_ : I >8 I -> J >8 J -> (I * J) >8 (I * J)
-  (C |+| D) (fst , snd) = {!? +>8+ ?!}
+  (C |+| D) (fst , snd) = {!!}
 
 -- Congratulations! If you've made it this far, you can now talk about how
 -- to *tile* rectangular spaces, like your screen.
